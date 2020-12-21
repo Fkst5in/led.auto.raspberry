@@ -77,7 +77,12 @@ def listen():
     led_socket = request.environ.get("wsgi.websocket")
     print("- ",led_socket," 连接已建立")
     while True:
-        led_socket.send("亮度：{:.05f}".format(led_pid.light))
+        # led_socket.send("亮度：{:.05f}".format(led_pid.light))
+        led_socket.send({
+            "light":"{:.05f}".format(led_pid.light),
+            "target":"{:.05f}".format(led_pid.target),
+            "output":led_pid.output,
+        })
         sleep(2)
     return {"success":True}
 

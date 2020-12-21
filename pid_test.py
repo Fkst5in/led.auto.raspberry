@@ -15,7 +15,7 @@ def get_interval():
     led.change(1000000)
     time.sleep(0.1)
     #测量亮度
-    print('最大亮度{:.05f}'.format(light.measure()))0.06
+    print('最大亮度{:.05f}'.format(light.measure()))
     #led最暗
     led.change(0)
     time.sleep(0.1)

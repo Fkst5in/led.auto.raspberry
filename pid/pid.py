@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # _*_ coding: utf-8 _*_
 
-
+import time
 
 class PID:
     def __init__(self, P, I, D, sample_time):

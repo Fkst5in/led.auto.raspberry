@@ -38,15 +38,15 @@
                     <div v-if="enabled">
                         <p>
                             <span>亮度：</span>
-                            <span > {{light}} </span>
+                            <span > {{light.toFixed(2)}}</span>
                         </p>
                         <p>
                             <span>目标：</span>
-                            <span > {{target}} </span>
+                            <span > {{target.toFixed(2)}} </span>
                         </p>
                         <p>
                             <span>输出：</span>
-                            <span > {{pwmOutput}} </span>
+                            <span > {{(pwmOutput/ 10000).toFixed(2)}}% </span>
                         </p>
                     </div>
                 </div>
@@ -54,7 +54,7 @@
 
                     <div class="card">
                         <div class="card-body">
-                            <h6 class="card-title">亮度设定 <small>({{lightInterval.min}} - {{lightInterval.max}} )</small> </h6>
+                            <h6 class="card-title">亮度设定 <small>({{lightInterval.min.toFixed(2)}} - {{(lightInterval.max.toFixed(2))}} )</small> </h6>
                             
                             <div class="input-group input-group-sm mb-3" style="width: 70%;">
                                 
@@ -93,7 +93,7 @@
                 lightInput:35.0,
                 // 可调节的亮度区间
                 lightInterval:{
-                    max:1000,
+                    max:100,
                     min:30.0
                 },
                 // 当前目标亮度
@@ -136,7 +136,7 @@
                                 }
                                 _this.infoList.unshift({
                                     type: "list-group-item-success",
-                                    message: `[post][light] 亮度更改成功，新的目标亮度: ${this.data.target}`
+                                    message: `[post][light] 亮度更改成功，新的目标亮度: ${res.data.target}`
                                 })
                             }else{
                                 // 维持信息展示列表的最大长度为 8
@@ -145,7 +145,7 @@
                                 }
                                 _this.infoList.unshift({
                                     type: "list-group-item-danger",
-                                    message: `[post][light] 亮度更改失败: ${this.data.message}`
+                                    message: `[post][light] 亮度更改失败: ${res.data.message}`
                                 })
                             }
                         })
@@ -167,8 +167,8 @@
 
                     axios.get('info')
                         .then(res =>{
-                            _this.lightInterval.min = res.data.min
-                            _this.lightInterval.max = res.data.max
+                            _this.lightInterval.min = res.data.min * 1
+                            _this.lightInterval.max = res.data.max * 1
                             // 维持信息展示列表的最大长度为 8
                             if (_this.infoList.length > 7) {
                                 _this.infoList.pop()
@@ -221,7 +221,7 @@
                 initSocket(){
                     // url
                     // let url = `ws://10.10.10.147:9090/listen`
-                    let url = `ws://${window.location.host}:${window.location.port}/listen`
+                    let url = `ws://${window.location.host}/listen`
                     // 打开连接
                     this.webSocket = new WebSocket(url)
                     this.webSocket.onopen = this.webSocketOnOpen
@@ -262,26 +262,37 @@
                     console.log(err)
                 },
                 webSocketOnMessage(res){
-                    // 维持信息展示列表的最大长度为 8
-                    if (this.infoList.length > 7) {
+                    // 维持信息展示列表的最大长度为 11
+                    if (this.infoList.length > 10) {
                         this.infoList.pop()
                     }
-                    this.infoList.unshift({
-                        type: "list-group-item-info",
-                        message: `[ws][info] 当前输出:${res.output} 当前亮度:${res.light} 目标亮度:${res.target} `
-                    })
-                    if(res.light != 0.0){ //判断是否开始pid调节
+                    let data = JSON.parse(res.data)
+                    if(data.light != 0){ //判断是否开始pid调节
+                        this.infoList.unshift({
+                            type: "list-group-item-info",
+                            message: `[ws][info] 当前输出:${(data.output / 10000).toFixed(2)}% 当前亮度:${data.light.toFixed(2)} 目标亮度:${data.target.toFixed(2)} `
+                        })
                         this.enabled = true
-                        this.light = res.light
-                        this.pwmOutput = res.output
-                        this.target = target
-                    }else{
+                        this.light = data.light
+                        this.pwmOutput = data.output
+                        this.target = data.target
+                    }else if(this.enabled){
+                        this.infoList.unshift({
+                            type: "list-group-item-info",
+                            message: `[ws][info] PID调节已停止 `
+                        })
+                        this.enabled = false
+                    }
+                    else{
                         this.enabled = false
                     }
                 }
             },
             created(){
+                // 打开ws连接
                 this.initSocket()
+                // 更新亮度调节区间
+                this.intervalUpdate()
             },
             destroyed() {
                 // 页面销毁关闭连接

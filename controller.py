@@ -1,10 +1,10 @@
 
 #!/usr/bin/python3
 # _*_ coding: utf-8 _*_
-
+import time
 from pid.pid import PID
-import hardware.led_pwm.led
-import hardware.rc_oscillator.rc
+import hardware.led_pwm.led as led
+import hardware.rc_oscillator.rc as rc
 
 #新建一个PID的子类，用于led的pid调光
 class LED_PID(PID):    
@@ -44,7 +44,7 @@ class LED_PID(PID):
             print("- PID自动调节开始")
             while self.enable:
                 feedback_value = rc.measure()
-                self.setLight = feedback_value
+                self.setLight(feedback_value)
                 self.update(feedback_value) 
                 # 判断是否
                 if -self.output > 1000000:
@@ -76,7 +76,7 @@ def get_interval():
     min = '{:.05f}'.format(rc.measure())
     print('最大亮度:',min)
 
-    return {"max:":max,"min":min}
+    return {"max":max,"min":min}
 
 
     

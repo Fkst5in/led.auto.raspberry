@@ -9,9 +9,11 @@ from geventwebsocket.server import WSGIServer
 from geventwebsocket.websocket import WebSocket
 from gevent import monkey
 from concurrent.futures import ThreadPoolExecutor
+import json
 # 引入led_pid类
 # from controller import LED_PID
 import controller
+import time
 # 一定一些全局变量
 monkey.patch_all()
 
@@ -46,9 +48,9 @@ def info():
 #获取当前亮度及调节目标亮度
 @app.route('/light',methods=['GET', 'POST'])
 def light():
-    if request.methods = 'GET':
+    if request.method == 'GET':
         return {"now":led_pid.light,"target":led_pid.target,"success":True}
-    elif request.methods = 'POST':
+    elif request.method == 'POST':
         global main_feture
 
         try:
@@ -64,7 +66,7 @@ def light():
                 led_pid.setTarget(value)
                 main_feture = executor.submit(led_pid.led_adjust)
                 return {"target":led_pid.target,"success":True}
-            elif:
+            else:
                 # 已在调节中
                 led_pid.setTarget(value)
                 return {"target":led_pid.target,"success":True}
@@ -78,12 +80,15 @@ def listen():
     print("- ",led_socket," 连接已建立")
     while True:
         # led_socket.send("亮度：{:.05f}".format(led_pid.light))
-        led_socket.send({
-            "light":"{:.05f}".format(led_pid.light),
-            "target":"{:.05f}".format(led_pid.target),
+        led_socket.send(json.dumps({
+            # "light":"{:.05f}".format(led_pid.light),
+            "light":led_pid.light,
+            # "target":"{:.05f}".format(led_pid.target),
+            "target":led_pid.target,
             "output":led_pid.output,
-        })
-        sleep(2)
+        }))
+        
+        time.sleep(2)
     return {"success":True}
 
 @app.route('/stop')

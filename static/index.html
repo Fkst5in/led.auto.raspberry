@@ -270,11 +270,11 @@
                     if(data.light != 0){ //判断是否开始pid调节
                         this.infoList.unshift({
                             type: "list-group-item-info",
-                            message: `[ws][info] 当前输出:${(data.output / 10000).toFixed(2)}% 当前亮度:${data.light.toFixed(2)} 目标亮度:${data.target.toFixed(2)} `
+                            message: `[ws][info] 当前输出:${(-data.output / 10000).toFixed(2)}% 当前亮度:${data.light.toFixed(2)} 目标亮度:${data.target.toFixed(2)} `
                         })
                         this.enabled = true
                         this.light = data.light
-                        this.pwmOutput = data.output
+                        this.pwmOutput = -data.output
                         this.target = data.target
                     }else if(this.enabled){
                         this.infoList.unshift({
